@@ -58,6 +58,6 @@
         <Spinner
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            ></Spinner>
+            android:background="@drawable/spinner_background_holo_light"></Spinner>
     </LinearLayout>
 </LinearLayout>

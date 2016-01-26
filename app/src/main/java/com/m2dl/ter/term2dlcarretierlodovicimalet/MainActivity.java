@@ -1,5 +1,8 @@
 package com.m2dl.ter.term2dlcarretierlodovicimalet;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -26,7 +29,14 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+        FragmentManager fragment = getFragmentManager();
+        FragmentTransaction transaction = fragment.beginTransaction();
+        transaction.replace(R.id.content_frame,new FragmentLayout());
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

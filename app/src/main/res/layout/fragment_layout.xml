@@ -13,13 +13,13 @@
         android:paddingTop="5dp">
 
         <Button
+            android:id="@+id/b1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/button_custom"
             android:text="test"
             android:textColor="@color/buttonText" />
     </LinearLayout>
-
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -28,10 +28,11 @@
         android:paddingTop="5dp">
 
         <Button
+            android:id="@+id/bServer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/button_custom"
-            android:text="test1"
+            android:text="Server"
             android:textColor="@color/buttonText" />
     </LinearLayout>
 
@@ -43,21 +44,35 @@
         android:paddingTop="5dp">
 
         <Button
-            android:id="@+id/bouton"
+            android:id="@+id/bClient"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/button_custom"
-            android:text="test2"
+            android:text="Client"
             android:textColor="@color/buttonText" />
     </LinearLayout>
+
     <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingBottom="5dp"
+        android:paddingTop="5dp">
+
+        <ListView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/listdevice" />
+    </LinearLayout>
+<!--    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
         >
+
         <Spinner
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/spinner_background_holo_light"></Spinner>
-    </LinearLayout>
+    </LinearLayout> -->
 </LinearLayout>

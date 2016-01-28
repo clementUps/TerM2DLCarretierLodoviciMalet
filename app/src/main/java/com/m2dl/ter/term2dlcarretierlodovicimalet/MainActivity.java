@@ -3,16 +3,30 @@ package com.m2dl.ter.term2dlcarretierlodovicimalet;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
+
+    private final static int REQUEST_ENABLE_BT = 0;
+    private BluetoothAdapter mBluetoothAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +43,19 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        // check si le téléphone supporte le bluetooth
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBluetoothAdapter == null) {
+            alertBoxNoBluetooth();
+        }
+
+        // check si le bluetooth est actif
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+
         FragmentManager fragment = getFragmentManager();
         FragmentTransaction transaction = fragment.beginTransaction();
         transaction.replace(R.id.content_frame,new FragmentLayout());
@@ -36,6 +63,21 @@ public class MainActivity extends AppCompatActivity {
         transaction.commit();
     }
 
+    public void alertBoxNoBluetooth() {
+        final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+
+        alertDialogBuilder.setTitle("Bluetooth non supporté");
+        alertDialogBuilder
+                .setMessage("Votre téléphone ne supporte pas le blutooth.\nVous ne pouvez pas utiliser l\'application")
+                .setCancelable(false)
+                .setPositiveButton("Quitter l\'application", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        System.exit(RESULT_OK);
+                    }
+                });
+        final AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
+    }
 
 
     @Override

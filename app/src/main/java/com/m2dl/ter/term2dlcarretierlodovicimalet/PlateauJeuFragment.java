@@ -143,6 +143,8 @@ public class PlateauJeuFragment extends Fragment {
                                 } else {
                                     str = "Joueur 1";
                                 }
+                                textJoueur.setVisibility(View.INVISIBLE);
+                                power.setVisibility(View.INVISIBLE);
                                 t.setText("Victoire du " + str);
                                 layout.addView(t);
                                 tour.setVisibility(View.INVISIBLE);

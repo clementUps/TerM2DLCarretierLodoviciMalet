@@ -18,6 +18,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +44,7 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
     public ConnectedThread mConnectedThread;
     private BroadcastReceiver mReceiver = null;
     private ListView listDevice;
+    private TextView text;
     private List<BluetoothDevice> callableDevices = new ArrayList<>();
 
     @Override
@@ -52,13 +55,16 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
         listDevice = (ListView) view.findViewById(R.id.listdevice);
         deviceName = new ArrayList<>();
 
+        text = (TextView) view.findViewById(R.id.textView);
+
+
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         // Device déjà connus
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
                 callableDevices.add(device);
-                deviceName.add(device.getName() + " | " + device.getAddress());
+                deviceName.add(device.getAddress());
                 printAvailableDevice();
             }
         }
@@ -72,17 +78,16 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
         listDevice.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.e("select", "je selectionne une device");
                 String device = (String) listDevice.getItemAtPosition(position);
-                String[] split = device.split(" | ");
                 BluetoothDevice selectedDevice = null;
                 for (BluetoothDevice bluetoothDevice : callableDevices) {
-                    if (bluetoothDevice.getAddress().equals(split[1])) {
+                    if (bluetoothDevice.getAddress().equals(device)) {
                         selectedDevice = bluetoothDevice;
                         break;
                     }
                 }
                 if (selectedDevice != null) {
+                    Toast.makeText(FragmentLayout.this.getActivity(), "j'ai clicker sur " + selectedDevice.getName(), Toast.LENGTH_LONG).show();
                     mConnectThread = new ConnectThread(selectedDevice);
                     mConnectThread.start();
                 }
@@ -103,6 +108,7 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
 //                mConnectThread = new ConnectThread();
                 break;
             case R.id.bClient :
+                visible();
                 mSecureAcceptThread = new AcceptThread();
                 mSecureAcceptThread.start();
                 break;
@@ -118,7 +124,7 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
                 if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                     BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                     callableDevices.add(device);
-                    deviceName.add(device.getName() + " | " + device.getAddress());
+                    deviceName.add(device.getAddress());
                     printAvailableDevice();
                 }
             }
@@ -134,12 +140,11 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
     }
 
     public void visible() {
-        //Pour être visible sur les autres
         Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
         discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 120);
         startActivity(discoverableIntent);
-
     }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -150,6 +155,7 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
     public void manageConnectedSocket(BluetoothSocket socket) {
         mConnectedThread = new ConnectedThread(socket);
         mConnectedThread.start();
+        mConnectedThread.write(new byte[] {1, 2, 3, 4});
     }
 
     private class AcceptThread extends Thread {
@@ -172,12 +178,14 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
             while (true) {
                 try {
                     socket = mmServerSocket.accept();
+                    Toast.makeText(FragmentLayout.this.getActivity(), "je lance accept()", Toast.LENGTH_LONG).show();
                 } catch (IOException e) {
                     break;
                 }
                 // If a connection was accepted
                 if (socket != null) {
                     // Do work to manage the connection (in a separate thread)
+                    Toast.makeText(FragmentLayout.this.getActivity(), "j'ai le socket ! je vais ecrire", Toast.LENGTH_LONG).show();
                     manageConnectedSocket(socket);
                     try {
                         mmServerSocket.close();
@@ -206,14 +214,17 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
             // because mmSocket is final
             BluetoothSocket tmp = null;
             mmDevice = device;
+            Toast.makeText(FragmentLayout.this.getActivity(), "Build connectThread", Toast.LENGTH_LONG).show();
 
             try {
                 if (mmDevice != null) {
-                    Log.i("Device UUID: ", String.valueOf(mmDevice.getUuids()[0].getUuid()));
+                    //Log.i("Device UUID: ", String.valueOf(mmDevice.getUuids()[0].getUuid()));
                     tmp = device.createRfcommSocketToServiceRecord(mmDevice.getUuids()[0].getUuid());
+                    Toast.makeText(FragmentLayout.this.getActivity(), String.valueOf(mmDevice.getUuids()[0].getUuid()), Toast.LENGTH_LONG).show();
                 }
             } catch (NullPointerException e) {
-                Log.d("DEFAULT_UUID", " UUID from device is null, Using Default UUID, Device name: " + device.getName());
+                //Log.d("DEFAULT_UUID", " UUID from device is null, Using Default UUID, Device name: " + device.getName());
+                Toast.makeText(FragmentLayout.this.getActivity(), "null to createRfComm", Toast.LENGTH_LONG).show();
                 try {
                     tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
                 } catch (IOException e1) {
@@ -226,21 +237,26 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
         }
 
         public void run() {
+            // Toast.makeText(FragmentLayout.this.getActivity(), "je start le connectThraed", Toast.LENGTH_LONG).show();
+            Log.e("test", "startRun");
             // Cancel discovery because it will slow down the connection
             mBluetoothAdapter.cancelDiscovery();
 
             try {
                 // Connect the device through the socket. This will block
                 // until it succeeds or throws an exception
+                //text.append("je tente le connect connectThraed");
+                Log.e("test", "connect()");
                 mmSocket.connect();
             } catch (IOException connectException) {
                 // Unable to connect; close the socket and get out
+                Log.e("test", "pas de connect connectThraed:" + connectException.getMessage());
                 try {
                     mmSocket.close();
                 } catch (IOException closeException) { }
                 return;
             }
-
+            Log.e("test", "je vais lancer le thread pour ecouter");
             // Do work to manage the connection (in a separate thread)
             manageConnectedSocket(mmSocket);
         }
@@ -277,12 +293,13 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
         public void run() {
             byte[] buffer = new byte[1024];  // buffer store for the stream
             int bytes; // bytes returned from read()
-
+            Log.e("test", "je vais read les byrtes");
             // Keep listening to the InputStream until an exception occurs
             while (true) {
                 try {
                     // Read from the InputStream
                     bytes = mmInStream.read(buffer);
+                    Log.e("test", "j'ai lu: " + Integer.toString(bytes));
                     // Send the obtained bytes to the UI activity
                     //mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)
                     //        .sendToTarget();
@@ -296,6 +313,8 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
         public void write(byte[] bytes) {
             try {
                 mmOutStream.write(bytes);
+                Log.e("test", "j'ai ecrire");
+
             } catch (IOException e) { }
         }
 

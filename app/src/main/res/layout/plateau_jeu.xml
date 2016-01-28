@@ -12,9 +12,21 @@
         android:orientation="horizontal"
         android:paddingBottom="5dp"
         android:paddingTop="5dp">
-        <ImageView
-            android:id="@+id/DrawingImageView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/layoutFin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="bottom"
+        android:paddingBottom="20dp"
+        android:paddingTop="20dp">
+    <Button
+        android:id="@+id/tourSuivant"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="Tour suivant"
+        android:background="@drawable/button_custom"/>
     </LinearLayout>
 </LinearLayout>

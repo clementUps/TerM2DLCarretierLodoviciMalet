@@ -5,5 +5,7 @@ package com.m2dl.ter.term2dlcarretierlodovicimalet.model;
  */
 public interface IPouvoir {
 
-    void activer(Game game);
+    int[] activer(int position, int nbCoup);
+
+    String getText();
 }

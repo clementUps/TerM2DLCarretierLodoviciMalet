@@ -22,12 +22,16 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.m2dl.ter.term2dlcarretierlodovicimalet.model.IPouvoir;
 import com.m2dl.ter.term2dlcarretierlodovicimalet.model.Joueur;
 
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 /**
  * Created by CCA3441 on 28/01/2016.
@@ -60,9 +64,20 @@ public class PlateauJeuFragment extends Fragment {
             transaction.commit();
         }
         joueurs = new ArrayList<>();
-        for(int i = 0;i < bundle.getInt("nombreJoueur");i++){
+        for(int i = 0;i < 2;i++){
             joueurs.add(new Joueur(""+i));
         }
+
+        List<IPouvoir> pouvoirs = new ArrayList<>(); // creer les pouvoirs
+        Random rm = new Random();
+        Map<Boolean, IPouvoir> pouvoirMap = new HashMap<>();
+
+        int p = rm.nextInt(pouvoirs.size());
+        pouvoirMap.put(true, pouvoirs.get(p));
+
+        p = rm.nextInt(pouvoirs.size());
+        pouvoirMap.put(false, pouvoirs.get(p));
+
         tourJoueur = true;
         nombreTotalAlumette = bundle.getInt("nombreAlummette");
         view = inflater.inflate(R.layout.plateau_jeu, container, false);

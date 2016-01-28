@@ -50,7 +50,7 @@ public class PlateauJeuFragment extends Fragment {
     private static int nombreTotalAlumette;
     private static List<Joueur> joueurs;
     private static boolean tourJoueur;
-
+    private static boolean pouvoirActivated;
     private static int nbAllumette;
 
     @Override
@@ -80,10 +80,17 @@ public class PlateauJeuFragment extends Fragment {
 
         tourJoueur = true;
         nombreTotalAlumette = bundle.getInt("nombreAlummette");
+        pouvoirActivated = bundle.getBoolean("pouvoir");
         view = inflater.inflate(R.layout.plateau_jeu, container, false);
         final LinearLayout layout = (LinearLayout) view.findViewById(R.id.layoutJeu);
+        final TextView textJoueur = (TextView) view.findViewById(R.id.textJoueur);
         imageViews = new ArrayList<>();
         final Button tour = (Button)view.findViewById(R.id.tourSuivant);
+        final Button power = (Button)view.findViewById(R.id.pouvoir);
+        if (pouvoirActivated)
+            power.setVisibility(View.VISIBLE);
+        else
+            power.setVisibility(View.INVISIBLE);
         nbAllumette = 3;
         lock = -1;
         position = 0;
@@ -91,6 +98,10 @@ public class PlateauJeuFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 tourJoueur = ! tourJoueur;
+                if (textJoueur.getText().equals("Joueur 1"))
+                    textJoueur.setText("Joueur 2");
+                else
+                    textJoueur.setText("Joueur 1");
                 nbAllumette = 3;
                 tour.setEnabled(false);
             }

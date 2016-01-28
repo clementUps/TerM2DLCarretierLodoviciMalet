@@ -48,6 +48,7 @@ public class ParametreFragment extends Fragment {
             public void onClick(View v) {
                 Bundle bundle = new Bundle();
                 bundle.putInt("nombreAlummette", (int)value);
+                bundle.putBoolean("pouvoir", pouvoir.isChecked());
                 ConnectionFragment co = new ConnectionFragment();
                 co.setArguments(bundle);
                 FragmentManager fragment = getFragmentManager();

@@ -1,6 +1,8 @@
 package com.m2dl.ter.term2dlcarretierlodovicimalet;
 
 import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -17,6 +19,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.m2dl.ter.term2dlcarretierlodovicimalet.model.Joueur;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,36 +43,61 @@ public class PlateauJeuFragment extends Fragment {
     private final int padding = 15;
     private static int lock;
     private static int position;
-    int[] viewCoords;
+    private static int nombreTotalAlumette;
+    private static List<Joueur> joueurs;
+    private static boolean tourJoueur;
+
+    private static int nbAllumette;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
+        Bundle bundle = this.getArguments();
+        if(!bundle.containsKey("nombreJoueur") || !bundle.containsKey("nombreAlummette")){
+            FragmentManager fragment = getFragmentManager();
+            FragmentTransaction transaction = fragment.beginTransaction();
+            transaction.replace(R.id.content_frame, new AccueilFragment());
+            transaction.commit();
+        }
+        joueurs = new ArrayList<>();
+        for(int i = 0;i < bundle.getInt("nombreJoueur");i++){
+            joueurs.add(new Joueur(""+i));
+        }
+        tourJoueur = true;
+        nombreTotalAlumette = bundle.getInt("nombreAlummette");
         view = inflater.inflate(R.layout.plateau_jeu, container, false);
-        LinearLayout layout = (LinearLayout) view.findViewById(R.id.layoutJeu);
+        final LinearLayout layout = (LinearLayout) view.findViewById(R.id.layoutJeu);
         imageViews = new ArrayList<>();
-        Button tour = (Button)view.findViewById(R.id.tourSuivant);
+        final Button tour = (Button)view.findViewById(R.id.tourSuivant);
+        nbAllumette = 3;
+        lock = -1;
+        position = 0;
         tour.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                tourJoueur = ! tourJoueur;
+                nbAllumette = 3;
+                tour.setEnabled(false);
             }
         });
-        for (int i = 0; i < 9; i++) {
-            viewCoords = new int[2];
+        for (int i = 0; i < nombreTotalAlumette; i++) {
             getY = 0;
             drawingImageView = new ImageView(getActivity());
             drawingImageView.setPadding(padding, 5, padding, 5);
             bitmap = BitmapFactory.decodeResource(getActivity().getResources(), R.drawable.allumette);
             drawingImageView.setImageBitmap(getRoundedCornerBitmap(bitmap, true));
             imageViews.add(drawingImageView);
-            imageViews.get(i).getLocationOnScreen(viewCoords);
             imageViews.get(i).setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                        if (position < 9) {
-                            lock = position;
+                        if (nbAllumette == 0) {
+                            Toast.makeText(getActivity().getApplicationContext(), "Joueur Suivant", Toast.LENGTH_SHORT).show();
+                            lock = -1;
+                        } else {
+                            if (position < nombreTotalAlumette) {
+                                lock = position;
+                            }
                         }
                     }
                     if (event.getAction() == MotionEvent.ACTION_MOVE) {
@@ -84,9 +117,39 @@ public class PlateauJeuFragment extends Fragment {
                         getY = 0;
                         if (lock == position) {
                             imageViews.get(lock).setImageBitmap(getRoundedCornerBitmap(bitmap, true));
-                        } else {
+                        } else if (lock != -1) {
+                            tour.setEnabled(true);
                             bitmap = BitmapFactory.decodeResource(getActivity().getResources(), R.drawable.allumettebrule);
                             imageViews.get(lock).setImageBitmap(getRoundedCornerBitmap(bitmap, true));
+                            bitmap = BitmapFactory.decodeResource(getActivity().getResources(), R.drawable.allumette);
+                            nbAllumette--;
+                            if (position == nombreTotalAlumette) {
+                                layout.removeAllViews();
+                                TextView t = new TextView(getActivity());
+                                String str;
+                                if (tourJoueur) {
+                                    str = "Joueur 2";
+                                } else {
+                                    str = "Joueur 1";
+                                }
+                                t.setText("Victoire du " + str);
+                                layout.addView(t);
+                                tour.setVisibility(View.INVISIBLE);
+                                Button b = new Button(getActivity());
+                                b.setText("Retour a l'acceuil");
+                                layout.addView(b);
+                                b.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        if (position == 9) {
+                                            FragmentManager fragment = getFragmentManager();
+                                            FragmentTransaction transaction = fragment.beginTransaction();
+                                            transaction.replace(R.id.content_frame, new AccueilFragment());
+                                            transaction.commit();
+                                        }
+                                    }
+                                });
+                            }
                         }
                     }
                     return true;

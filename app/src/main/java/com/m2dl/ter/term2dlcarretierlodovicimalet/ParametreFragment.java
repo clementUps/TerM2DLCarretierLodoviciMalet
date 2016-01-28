@@ -25,6 +25,7 @@ public class ParametreFragment extends Fragment {
     private CheckBox pouvoir;
     private SeekBar seek;
     private TextView textSeek;
+    private double value = 20;
 
 
 
@@ -45,9 +46,13 @@ public class ParametreFragment extends Fragment {
         lancer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Bundle bundle = new Bundle();
+                bundle.putInt("nombreAlummette", (int)value);
+                ConnectionFragment co = new ConnectionFragment();
+                co.setArguments(bundle);
                 FragmentManager fragment = getFragmentManager();
                 FragmentTransaction transaction = fragment.beginTransaction();
-                transaction.replace(R.id.content_frame,new PlateauJeuFragment());
+                transaction.replace(R.id.content_frame,co);
                 transaction.commit();
             }
         });
@@ -56,7 +61,7 @@ public class ParametreFragment extends Fragment {
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                double value = min + (progress * step);
+                value = min + (progress * step);
                 textSeek.setText(""+((int)value));
             }
 

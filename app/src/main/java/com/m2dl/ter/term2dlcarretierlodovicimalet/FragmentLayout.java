@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -34,7 +35,7 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
 
     private View view;
     private BluetoothAdapter mBluetoothAdapter;
-    private ArrayList<String> mArrayAdapter;
+    private ArrayList<String> deviceName;
     private UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private AcceptThread mSecureAcceptThread;
     private ConnectThread mConnectThread;
@@ -49,7 +50,7 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
         view = inflater.inflate(R.layout.fragment_layout,container,false);
 
         listDevice = (ListView) view.findViewById(R.id.listdevice);
-        mArrayAdapter = new ArrayList<>();
+        deviceName = new ArrayList<>();
 
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         // Device déjà connus
@@ -57,10 +58,10 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
                 callableDevices.add(device);
+                deviceName.add(device.getName() + " | " + device.getAddress());
+                printAvailableDevice();
             }
         }
-
-        printAvailableDevice();
 
         Button b1 = (Button) view.findViewById(R.id.b1);
         b1.setOnClickListener(this);
@@ -72,9 +73,19 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Log.e("select", "je selectionne une device");
-                BluetoothDevice device = (BluetoothDevice) listDevice.getItemAtPosition(position);
-                mConnectThread = new ConnectThread(device);
-                mConnectThread.start();
+                String device = (String) listDevice.getItemAtPosition(position);
+                String[] split = device.split(" | ");
+                BluetoothDevice selectedDevice = null;
+                for (BluetoothDevice bluetoothDevice : callableDevices) {
+                    if (bluetoothDevice.getAddress().equals(split[1])) {
+                        selectedDevice = bluetoothDevice;
+                        break;
+                    }
+                }
+                if (selectedDevice != null) {
+                    mConnectThread = new ConnectThread(selectedDevice);
+                    mConnectThread.start();
+                }
             }
         });
 
@@ -87,13 +98,13 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
         switch (id) {
             case R.id.b1 :
                 searchNewDevice();
-                printAvailableDevice();
                 break;
             case R.id.bServer :
 //                mConnectThread = new ConnectThread();
                 break;
             case R.id.bClient :
-//                mSecureAcceptThread = new AcceptThread();
+                mSecureAcceptThread = new AcceptThread();
+                mSecureAcceptThread.start();
                 break;
         }
     }
@@ -107,6 +118,8 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
                 if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                     BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                     callableDevices.add(device);
+                    deviceName.add(device.getName() + " | " + device.getAddress());
+                    printAvailableDevice();
                 }
             }
         };
@@ -115,8 +128,8 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
     }
 
     private void printAvailableDevice() {
-        final ArrayAdapter<BluetoothDevice> adapter = new ArrayAdapter<BluetoothDevice>(this.getActivity(),
-                android.R.layout.simple_list_item_1, callableDevices);
+        final ArrayAdapter<String> adapter = new ArrayAdapter(this.getActivity(),
+                android.R.layout.simple_list_item_1, deviceName);
         listDevice.setAdapter(adapter);
     }
 

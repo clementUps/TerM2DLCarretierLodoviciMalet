@@ -22,12 +22,16 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.m2dl.ter.term2dlcarretierlodovicimalet.model.AddAllumette;
 import com.m2dl.ter.term2dlcarretierlodovicimalet.model.IPouvoir;
 import com.m2dl.ter.term2dlcarretierlodovicimalet.model.Joueur;
+import com.m2dl.ter.term2dlcarretierlodovicimalet.model.PassTurn;
+import com.m2dl.ter.term2dlcarretierlodovicimalet.model.TwoTime;
 
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,11 +56,15 @@ public class PlateauJeuFragment extends Fragment {
     private static boolean tourJoueur;
     private static boolean pouvoirActivated;
     private static int nbAllumette;
+    private static boolean tourJoueurUn;
+    private static boolean tourJourDeux;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         Bundle bundle = this.getArguments();
+        tourJoueurUn = false;
+        tourJourDeux = false;
         if(!bundle.containsKey("nombreJoueur") || !bundle.containsKey("nombreAlummette")){
             FragmentManager fragment = getFragmentManager();
             FragmentTransaction transaction = fragment.beginTransaction();
@@ -68,15 +76,7 @@ public class PlateauJeuFragment extends Fragment {
             joueurs.add(new Joueur(""+i));
         }
 
-        List<IPouvoir> pouvoirs = new ArrayList<>(); // creer les pouvoirs
-        Random rm = new Random();
-        Map<Boolean, IPouvoir> pouvoirMap = new HashMap<>();
 
-        int p = rm.nextInt(pouvoirs.size());
-        pouvoirMap.put(true, pouvoirs.get(p));
-
-        p = rm.nextInt(pouvoirs.size());
-        pouvoirMap.put(false, pouvoirs.get(p));
 
         tourJoueur = true;
         nombreTotalAlumette = bundle.getInt("nombreAlummette");
@@ -87,10 +87,44 @@ public class PlateauJeuFragment extends Fragment {
         imageViews = new ArrayList<>();
         final Button tour = (Button)view.findViewById(R.id.tourSuivant);
         final Button power = (Button)view.findViewById(R.id.pouvoir);
-        if (pouvoirActivated)
+        if (pouvoirActivated) {
             power.setVisibility(View.VISIBLE);
+            List<IPouvoir> pouvoirs = Arrays.asList(new PassTurn(), new TwoTime(), new AddAllumette()); // creer les pouvoirs
+            Random rm = new Random();
+            final Map<Boolean, IPouvoir> pouvoirMap = new HashMap<>();
+
+            int p = rm.nextInt(pouvoirs.size());
+            pouvoirMap.put(true, pouvoirs.get(p));
+
+            p = rm.nextInt(pouvoirs.size());
+            pouvoirMap.put(false, pouvoirs.get(p));
+            power.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    IPouvoir pouv = pouvoirMap.get(tourJoueur);
+                    int[] i = pouv.activer(position,nbAllumette);
+                    position = i[0];
+                    nbAllumette = i[1];
+                    if(pouv instanceof AddAllumette){
+                        bitmap = BitmapFactory.decodeResource(getActivity().getResources(), R.drawable.allumette);
+                        imageViews.get(lock).setImageBitmap(getRoundedCornerBitmap(bitmap, true));
+                    }
+                    if(pouv instanceof PassTurn){
+                        tour.setEnabled(true);
+                    }
+                    if (tourJoueur) {
+                        tourJoueurUn = true;
+
+                    } else { // J 2
+                        tourJourDeux = true;
+                    }
+
+                }
+            });
+        }
         else
             power.setVisibility(View.INVISIBLE);
+
         nbAllumette = 3;
         lock = -1;
         position = 0;
@@ -104,6 +138,12 @@ public class PlateauJeuFragment extends Fragment {
                     textJoueur.setText("Joueur 1");
                 nbAllumette = 3;
                 tour.setEnabled(false);
+                if(tourJoueur) {
+                    power.setEnabled(tourJoueurUn);
+                }
+                    else {
+                        power.setEnabled(tourJourDeux);
+                    }
             }
         });
         for (int i = 0; i < nombreTotalAlumette; i++) {

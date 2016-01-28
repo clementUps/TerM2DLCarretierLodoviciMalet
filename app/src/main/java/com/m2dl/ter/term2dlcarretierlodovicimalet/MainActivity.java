@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
         alertDialogBuilder.setTitle("Bluetooth non supporté");
         alertDialogBuilder
-                .setMessage("Votre téléphone ne supporte pas le blutooth.\nVous ne pouvez pas utiliser l\'application")
+                .setMessage("Votre téléphone ne supporte pas le bluetooth.\nVous ne pouvez pas utiliser l\'application")
                 .setCancelable(false)
                 .setPositiveButton("Quitter l\'application", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {

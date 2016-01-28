@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -40,6 +41,7 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
     public ConnectedThread mConnectedThread;
     private BroadcastReceiver mReceiver = null;
     private ListView listDevice;
+    private List<BluetoothDevice> callableDevices = new ArrayList<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -54,10 +56,12 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
-                mArrayAdapter.add(device.getName() + " - " + device.getAddress());
+                callableDevices.add(device);
             }
         }
-        putListInList();
+
+        printAvailableDevice();
+
         Button b1 = (Button) view.findViewById(R.id.b1);
         b1.setOnClickListener(this);
         Button bServer = (Button) view.findViewById(R.id.bServer);
@@ -67,16 +71,34 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
         listDevice.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String  itemValue    = (String) listDevice.getItemAtPosition(position);
-                Log.e("select", itemValue);
+                Log.e("select", "je selectionne une device");
+                BluetoothDevice device = (BluetoothDevice) listDevice.getItemAtPosition(position);
+                mConnectThread = new ConnectThread(device);
+                mConnectThread.start();
             }
         });
 
         return view;
     }
 
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        switch (id) {
+            case R.id.b1 :
+                searchNewDevice();
+                printAvailableDevice();
+                break;
+            case R.id.bServer :
+//                mConnectThread = new ConnectThread();
+                break;
+            case R.id.bClient :
+//                mSecureAcceptThread = new AcceptThread();
+                break;
+        }
+    }
+
     public void searchNewDevice() {
-        mArrayAdapter.clear();
         mBluetoothAdapter.startDiscovery();
         mReceiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
@@ -84,10 +106,7 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
                 // When discovery finds a device
                 if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                     BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    String newDevice = device.getName() + " - " + device.getAddress();
-                    if (!mArrayAdapter.contains(newDevice))
-                        mArrayAdapter.add(newDevice);
-                    putListInList();
+                    callableDevices.add(device);
                 }
             }
         };
@@ -95,9 +114,9 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
         getActivity().registerReceiver(mReceiver, filter);
     }
 
-    public void putListInList() {
-        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this.getActivity(),
-                android.R.layout.simple_list_item_1, mArrayAdapter);
+    private void printAvailableDevice() {
+        final ArrayAdapter<BluetoothDevice> adapter = new ArrayAdapter<BluetoothDevice>(this.getActivity(),
+                android.R.layout.simple_list_item_1, callableDevices);
         listDevice.setAdapter(adapter);
     }
 
@@ -118,22 +137,6 @@ public class FragmentLayout extends Fragment implements View.OnClickListener {
     public void manageConnectedSocket(BluetoothSocket socket) {
         mConnectedThread = new ConnectedThread(socket);
         mConnectedThread.start();
-    }
-
-    @Override
-    public void onClick(View v) {
-        int id = v.getId();
-        switch (id) {
-            case R.id.b1 :
-                searchNewDevice();
-                break;
-            case R.id.bServer :
-//                mConnectThread = new ConnectThread();
-                break;
-            case R.id.bClient :
-//                mSecureAcceptThread = new AcceptThread();
-                break;
-        }
     }
 
     private class AcceptThread extends Thread {
